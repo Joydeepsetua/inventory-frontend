@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Brand palette. Defining these here makes them real Tailwind utilities —
+   bg-primary, text-primary, border-primary, ring-primary and so on — so no
+   component ever hardcodes the hex. */
+@theme {
+  --color-primary: #008000;
+  --color-primary-dark: #006400;
+  --color-primary-tint: #e8f3e8;
+}

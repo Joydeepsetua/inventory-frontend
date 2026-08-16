@@ -1,17 +1,29 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
+import {
+  BoxIcon,
+  CartIcon,
+  CategoryIcon,
+  DashboardIcon,
+  InvoiceIcon,
+  LogoutIcon,
+  StoreIcon,
+  TagIcon,
+  UserIcon,
+  UsersIcon,
+} from "../icons";
 import { logout } from "../store/authSlice";
 import { resetCart } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 const NAV = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/billing", label: "Billing" },
-  { to: "/invoices", label: "Invoices" },
-  { to: "/customers", label: "Customers" },
-  { to: "/categories", label: "Categories" },
-  { to: "/products", label: "Products" },
-  { to: "/variants", label: "Variants" },
+  { to: "/", label: "Dashboard", Icon: DashboardIcon, end: true },
+  { to: "/billing", label: "Billing", Icon: CartIcon },
+  { to: "/invoices", label: "Invoices", Icon: InvoiceIcon },
+  { to: "/customers", label: "Customers", Icon: UsersIcon },
+  { to: "/categories", label: "Categories", Icon: CategoryIcon },
+  { to: "/products", label: "Products", Icon: BoxIcon },
+  { to: "/variants", label: "Variants", Icon: TagIcon },
 ];
 
 export default function Layout() {
@@ -25,49 +37,80 @@ export default function Layout() {
     navigate("/login", { replace: true });
   };
 
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+      isActive
+        ? "bg-primary text-white"
+        : "text-slate-600 hover:bg-primary-tint hover:text-primary-dark"
+    }`;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-          <span className="font-semibold">Billing &amp; Inventory</span>
-
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-slate-500">
-              {user?.name} · {user?.role}
+      {/* Sticky so the nav stays reachable on long invoice lists. */}
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
+              <StoreIcon />
             </span>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded border border-slate-300 px-3 py-1 hover:bg-slate-100"
-            >
-              Logout
-            </button>
+            <span className="text-lg font-semibold">Billing &amp; Inventory</span>
           </div>
-        </div>
 
-        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 pb-2 text-sm">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                `whitespace-nowrap rounded px-3 py-1.5 ${
-                  isActive
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogoutIcon className="h-4 w-4" />
+            <span>Logout</span>
+          </button>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <Outlet />
-      </main>
+      <div className="flex">
+        <aside className="sticky top-[61px] hidden h-[calc(100vh-61px)] w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-3 md:block">
+          <div className="mb-4 flex items-center gap-3 rounded-lg bg-primary p-3 text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <UserIcon />
+            </span>
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-sm font-medium">{user?.name}</div>
+              <div className="text-xs text-white/80">{user?.role}</div>
+            </div>
+          </div>
+
+          <nav className="flex flex-col gap-1">
+            {NAV.map(({ to, label, Icon, end }) => (
+              <NavLink key={to} to={to} end={end} className={linkClass}>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="min-w-0 flex-1 p-4 md:p-6">
+          <nav className="mb-4 flex gap-1 overflow-x-auto pb-1 md:hidden">
+            {NAV.map(({ to, label, Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `${linkClass({ isActive })} shrink-0 whitespace-nowrap ${
+                    isActive ? "" : "bg-white"
+                  }`
+                }
+              >
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
