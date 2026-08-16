@@ -53,14 +53,25 @@ const request = async <T>(
 ): Promise<ApiResult<T>> => {
   const token = getToken();
 
-  const response = await fetch(buildUrl(path, options.query), {
-    method,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(buildUrl(path, options.query), {
+      method,
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...(options.body ? { body: JSON.stringify(options.body) } : {}),
+    });
+  } catch {
+    throw new ApiError(
+      navigator.onLine
+        ? "Cannot reach the server. Please make sure it is running and try again."
+        : "You are offline. Check your internet connection and try again.",
+      0
+    );
+  }
 
   if (response.status === 401) {
     clearToken();

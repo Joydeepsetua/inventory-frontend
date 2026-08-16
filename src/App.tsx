@@ -5,10 +5,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Billing from "./pages/Billing";
 import Categories from "./pages/Categories";
 import Customers from "./pages/Customers";
+import Dashboard from "./pages/Dashboard";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import Invoices from "./pages/Invoices";
 import Login from "./pages/Login";
-import Placeholder from "./pages/Placeholder";
 import Products from "./pages/Products";
 import Variants from "./pages/Variants";
 
@@ -19,7 +19,7 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route index element={<Placeholder title="Dashboard" />} />
+          <Route index element={<Dashboard />} />
           <Route path="billing" element={<Billing />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="invoices/:id" element={<InvoiceDetail />} />

@@ -57,8 +57,17 @@ export const STOCK_OPTIONS: SelectOption<StockFilter>[] = [
 ];
 
 export const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
+  PENDING: "bg-orange-100 text-orange-800",
   PAID: "bg-primary-tint text-primary-dark",
-  PARTIAL: "bg-blue-100 text-blue-700",
+  PARTIAL: "bg-blue-100 text-blue-800",
   CANCELLED: "bg-slate-100 text-slate-500",
 };
+
+export const PAYMENT_STATUS_CHART_COLORS: Record<PaymentStatus, string> = {
+  PAID: "#008000",
+  PARTIAL: "#2563EB",
+  PENDING: "#C2410C",
+  CANCELLED: "#94A3B8",
+};
+
+export const CHART_PRIMARY = "#008000";
