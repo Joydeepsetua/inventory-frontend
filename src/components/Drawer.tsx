@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { CloseIcon } from "../icons";
 
-interface ModalProps {
+interface DrawerProps {
   open: boolean;
   title: string;
   busy?: boolean;
@@ -12,14 +12,14 @@ interface ModalProps {
   footer?: ReactNode;
 }
 
-export default function Modal({
+export default function Drawer({
   open,
   title,
   busy = false,
   onClose,
   children,
   footer,
-}: ModalProps) {
+}: DrawerProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -42,19 +42,19 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40"
       onClick={(event) => {
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div
+      <aside
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
-        className="my-auto w-full max-w-lg rounded-lg bg-white shadow-lg"
+        aria-labelledby="drawer-title"
+        className="flex h-full w-full flex-col bg-white shadow-2xl sm:max-w-lg lg:w-1/2 lg:max-w-2xl"
       >
-        <div className="flex items-center justify-between rounded-t-lg bg-primary px-5 py-3 text-white">
-          <h2 id="modal-title" className="text-base font-semibold">
+        <div className="flex shrink-0 items-center justify-between bg-primary px-5 py-3 text-white">
+          <h2 id="drawer-title" className="text-base font-semibold">
             {title}
           </h2>
           <button
@@ -68,14 +68,16 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="px-5 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {children}
+        </div>
 
         {footer && (
-          <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3">
+          <div className="shrink-0 border-t border-slate-200 px-5 py-3">
             {footer}
           </div>
         )}
-      </div>
+      </aside>
     </div>
   );
 }

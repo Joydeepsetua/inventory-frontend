@@ -39,6 +39,7 @@ export default function AsyncSelect({
   const [options, setOptions] = useState<SelectOption<string>[]>([]);
   const [loading, setLoading] = useState(false);
   const [picked, setPicked] = useState<string | null>(selectedLabel ?? null);
+  const [dropUp, setDropUp] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -49,6 +50,13 @@ export default function AsyncSelect({
 
   useEffect(() => {
     if (!open) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+
+    if (rect) {
+      const below = window.innerHeight - rect.bottom;
+      setDropUp(below < 330 && rect.top > below);
+    }
 
     const onPointerDown = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -136,7 +144,11 @@ export default function AsyncSelect({
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full min-w-56 rounded-lg border border-slate-200 bg-white shadow-lg">
+        <div
+          className={`absolute z-30 w-full min-w-56 rounded-lg border border-slate-200 bg-white shadow-lg ${
+            dropUp ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+        >
           <div className="relative border-b border-slate-100 p-2">
             <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input

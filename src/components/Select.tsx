@@ -29,10 +29,18 @@ export default function Select<T extends string>({
   invalid = false,
 }: SelectProps<T>) {
   const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+
+    if (rect) {
+      const below = window.innerHeight - rect.bottom;
+      setDropUp(below < 260 && rect.top > below);
+    }
 
     const onPointerDown = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -87,7 +95,9 @@ export default function Select<T extends string>({
       {open && (
         <ul
           role="listbox"
-          className="absolute z-30 mt-1 max-h-60 w-full min-w-max overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+          className={`absolute z-30 max-h-60 w-full min-w-max overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg ${
+            dropUp ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
         >
           {options.map((option) => {
             const isSelected = option.value === value;

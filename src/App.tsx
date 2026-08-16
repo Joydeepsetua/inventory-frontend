@@ -2,8 +2,11 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Billing from "./pages/Billing";
 import Categories from "./pages/Categories";
 import Customers from "./pages/Customers";
+import InvoiceDetail from "./pages/InvoiceDetail";
+import Invoices from "./pages/Invoices";
 import Login from "./pages/Login";
 import Placeholder from "./pages/Placeholder";
 import Products from "./pages/Products";
@@ -17,12 +20,9 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route index element={<Placeholder title="Dashboard" />} />
-          <Route path="billing" element={<Placeholder title="Billing" />} />
-          <Route path="invoices" element={<Placeholder title="Invoices" />} />
-          <Route
-            path="invoices/:id"
-            element={<Placeholder title="Invoice detail" />}
-          />
+          <Route path="billing" element={<Billing />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="invoices/:id" element={<InvoiceDetail />} />
           <Route path="customers" element={<Customers />} />
           <Route path="categories" element={<Categories />} />
           <Route path="products" element={<Products />} />
