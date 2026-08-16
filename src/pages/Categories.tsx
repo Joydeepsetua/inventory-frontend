@@ -315,17 +315,20 @@ export default function Categories() {
         )}
       </div>
 
-      <CategoryFormModal
-        open={formOpen}
-        category={editing}
-        saving={saving}
-        error={formError}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
+      {formOpen && (
+        <CategoryFormModal
+          open
+          key={editing?.id ?? "new"}
+          category={editing}
+          saving={saving}
+          error={formError}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pending}

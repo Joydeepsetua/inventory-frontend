@@ -38,15 +38,14 @@ export default function AsyncSelect({
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<SelectOption<string>[]>([]);
   const [loading, setLoading] = useState(false);
-  const [picked, setPicked] = useState<string | null>(selectedLabel ?? null);
+  const [picked, setPicked] = useState<SelectOption<string> | null>(null);
   const [dropUp, setDropUp] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setPicked(selectedLabel ?? null);
-  }, [selectedLabel, value]);
+  const pickedLabel =
+    picked && picked.value === value ? picked.label : (selectedLabel ?? null);
 
   useEffect(() => {
     if (!open) return;
@@ -108,12 +107,16 @@ export default function AsyncSelect({
   };
 
   const pick = (option: SelectOption<string> | null) => {
-    setPicked(option?.label ?? null);
+    setPicked(option);
     onChange(option?.value ?? "", option);
     close();
   };
 
-  const triggerText = value ? picked ?? placeholder : allowClear ? clearLabel : placeholder;
+  const triggerText = value
+    ? (pickedLabel ?? placeholder)
+    : allowClear
+      ? clearLabel
+      : placeholder;
   const isPlaceholder = !value && !allowClear;
 
   return (

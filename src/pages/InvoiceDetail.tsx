@@ -290,14 +290,16 @@ export default function InvoiceDetail() {
         </div>
       </div>
 
-      <PaymentModal
-        open={paymentOpen}
-        invoice={invoice}
-        saving={paymentSaving}
-        error={paymentError}
-        onSubmit={handlePayment}
-        onClose={() => setPaymentOpen(false)}
-      />
+      {paymentOpen && (
+        <PaymentModal
+          open
+          invoice={invoice}
+          saving={paymentSaving}
+          error={paymentError}
+          onSubmit={handlePayment}
+          onClose={() => setPaymentOpen(false)}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmCancel}

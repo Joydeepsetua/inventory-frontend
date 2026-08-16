@@ -339,17 +339,20 @@ export default function Products() {
         )}
       </div>
 
-      <ProductFormModal
-        open={formOpen}
-        product={editing}
-        saving={saving}
-        error={formError}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
+      {formOpen && (
+        <ProductFormModal
+          open
+          key={editing?.id ?? "new"}
+          product={editing}
+          saving={saving}
+          error={formError}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pending}

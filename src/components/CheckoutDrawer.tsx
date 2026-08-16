@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { createInvoice } from "../api/invoices";
 import { searchCustomerOptions } from "../api/options";
@@ -42,20 +42,6 @@ export default function CheckoutDrawer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Invoice | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setCustomerId("");
-    setCustomerLabel(null);
-    setDiscount("0");
-    setTaxRate("0");
-    setPaymentStatus("PENDING");
-    setPaymentMethod("");
-    setNotes("");
-    setError(null);
-    setCreated(null);
-  }, [open]);
 
   const totals = useMemo(() => {
     const subtotal = Number(cart.summary.subtotal);

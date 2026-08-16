@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { searchCategoryOptions } from "../api/options";
 import type { ProductInput } from "../api/products";
@@ -54,28 +54,22 @@ export default function ProductFormModal({
   onSubmit,
   onClose,
 }: ProductFormModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY);
-  const [categoryLabel, setCategoryLabel] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(() =>
+    product
+      ? {
+          category_id: product.category_id,
+          name: product.name,
+          brand: product.brand ?? "",
+          description: product.description ?? "",
+        }
+      : EMPTY
+  );
+  const [categoryLabel, setCategoryLabel] = useState<string | null>(
+    () => product?.category?.name ?? null
+  );
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
   >({});
-
-  useEffect(() => {
-    if (!open) return;
-
-    setForm(
-      product
-        ? {
-            category_id: product.category_id,
-            name: product.name,
-            brand: product.brand ?? "",
-            description: product.description ?? "",
-          }
-        : EMPTY
-    );
-    setCategoryLabel(product?.category?.name ?? null);
-    setErrors({});
-  }, [open, product]);
 
   const set = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));

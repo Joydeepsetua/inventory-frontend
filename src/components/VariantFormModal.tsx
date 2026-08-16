@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { searchProductOptions } from "../api/options";
 import type { VariantInput } from "../api/variants";
@@ -82,39 +82,28 @@ export default function VariantFormModal({
   onSubmit,
   onClose,
 }: VariantFormModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY);
-  const [productLabel, setProductLabel] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(() =>
+    variant
+      ? {
+          product_id: variant.product_id,
+          sku: variant.sku,
+          name: variant.name,
+          price: variant.price,
+          stock_quantity: String(variant.stock_quantity),
+          low_stock_threshold: String(variant.low_stock_threshold),
+        }
+      : EMPTY
+  );
+  const [productLabel, setProductLabel] = useState<string | null>(() => {
+    const product = variant?.product;
+
+    if (!product) return null;
+
+    return product.brand ? `${product.name} · ${product.brand}` : product.name;
+  });
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
   >({});
-
-  useEffect(() => {
-    if (!open) return;
-
-    setForm(
-      variant
-        ? {
-            product_id: variant.product_id,
-            sku: variant.sku,
-            name: variant.name,
-            price: variant.price,
-            stock_quantity: String(variant.stock_quantity),
-            low_stock_threshold: String(variant.low_stock_threshold),
-          }
-        : EMPTY
-    );
-
-    const product = variant?.product;
-
-    setProductLabel(
-      product
-        ? product.brand
-          ? `${product.name} · ${product.brand}`
-          : product.name
-        : null
-    );
-    setErrors({});
-  }, [open, variant]);
 
   const set = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));

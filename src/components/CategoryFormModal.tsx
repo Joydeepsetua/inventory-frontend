@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { CategoryInput } from "../api/categories";
 import type { Category } from "../types/api";
@@ -44,21 +44,14 @@ export default function CategoryFormModal({
   onSubmit,
   onClose,
 }: CategoryFormModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY);
+  const [form, setForm] = useState<FormState>(() =>
+    category
+      ? { name: category.name, description: category.description ?? "" }
+      : EMPTY
+  );
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
   >({});
-
-  useEffect(() => {
-    if (!open) return;
-
-    setForm(
-      category
-        ? { name: category.name, description: category.description ?? "" }
-        : EMPTY
-    );
-    setErrors({});
-  }, [open, category]);
 
   const set = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));

@@ -317,17 +317,20 @@ export default function Customers() {
         )}
       </div>
 
-      <CustomerFormModal
-        open={formOpen}
-        customer={editing}
-        saving={saving}
-        error={formError}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
+      {formOpen && (
+        <CustomerFormModal
+          open
+          key={editing?.id ?? "new"}
+          customer={editing}
+          saving={saving}
+          error={formError}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pending}

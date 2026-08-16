@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   PAYMENT_METHOD_FIELD_OPTIONS,
@@ -29,19 +29,14 @@ export default function PaymentModal({
   onSubmit,
   onClose,
 }: PaymentModalProps) {
-  const [status, setStatus] = useState<SettablePaymentStatus>("PENDING");
-  const [method, setMethod] = useState<PaymentMethodValue>("");
-
-  useEffect(() => {
-    if (!open || !invoice) return;
-
-    setStatus(
-      invoice.payment_status === "CANCELLED"
-        ? "PENDING"
-        : (invoice.payment_status as SettablePaymentStatus)
-    );
-    setMethod(invoice.payment_method ?? "");
-  }, [open, invoice]);
+  const [status, setStatus] = useState<SettablePaymentStatus>(() =>
+    !invoice || invoice.payment_status === "CANCELLED"
+      ? "PENDING"
+      : (invoice.payment_status as SettablePaymentStatus)
+  );
+  const [method, setMethod] = useState<PaymentMethodValue>(
+    () => invoice?.payment_method ?? ""
+  );
 
   return (
     <Modal

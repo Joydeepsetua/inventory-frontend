@@ -442,15 +442,17 @@ export default function Billing() {
         </aside>
       </div>
 
-      <CheckoutDrawer
-        open={checkoutOpen}
-        cart={cart}
-        onClose={() => setCheckoutOpen(false)}
-        onInvoiced={() => {
-          dispatch(fetchCart());
-          setReloadToken((current) => current + 1);
-        }}
-      />
+      {checkoutOpen && (
+        <CheckoutDrawer
+          open
+          cart={cart}
+          onClose={() => setCheckoutOpen(false)}
+          onInvoiced={() => {
+            dispatch(fetchCart());
+            setReloadToken((current) => current + 1);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmClear}

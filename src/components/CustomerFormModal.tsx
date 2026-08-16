@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { CustomerInput } from "../api/customers";
 import type { Customer } from "../types/api";
@@ -72,30 +72,23 @@ export default function CustomerFormModal({
   onSubmit,
   onClose,
 }: CustomerFormModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY);
+  const [form, setForm] = useState<FormState>(() =>
+    customer
+      ? {
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email ?? "",
+          address: customer.address ?? "",
+          city: customer.city ?? "",
+          state: customer.state ?? "",
+          pincode: customer.pincode ?? "",
+          gst_number: customer.gst_number ?? "",
+        }
+      : EMPTY
+  );
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
   >({});
-
-  useEffect(() => {
-    if (!open) return;
-
-    setForm(
-      customer
-        ? {
-            name: customer.name,
-            phone: customer.phone,
-            email: customer.email ?? "",
-            address: customer.address ?? "",
-            city: customer.city ?? "",
-            state: customer.state ?? "",
-            pincode: customer.pincode ?? "",
-            gst_number: customer.gst_number ?? "",
-          }
-        : EMPTY
-    );
-    setErrors({});
-  }, [open, customer]);
 
   const set = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));

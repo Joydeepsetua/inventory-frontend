@@ -383,17 +383,20 @@ export default function Variants() {
         )}
       </div>
 
-      <VariantFormModal
-        open={formOpen}
-        variant={editing}
-        saving={saving}
-        error={formError}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
+      {formOpen && (
+        <VariantFormModal
+          open
+          key={editing?.id ?? "new"}
+          variant={editing}
+          saving={saving}
+          error={formError}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pending}
