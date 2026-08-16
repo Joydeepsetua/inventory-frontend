@@ -13,6 +13,9 @@ interface SelectProps<T extends string> {
   onChange: (value: T) => void;
   label?: string;
   className?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  invalid?: boolean;
 }
 
 export default function Select<T extends string>({
@@ -21,6 +24,9 @@ export default function Select<T extends string>({
   onChange,
   label,
   className = "",
+  placeholder = "Select",
+  disabled = false,
+  invalid = false,
 }: SelectProps<T>) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,14 +60,23 @@ export default function Select<T extends string>({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-sm transition ${
-          open ? "border-primary" : "border-slate-300 hover:border-slate-400"
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-sm transition disabled:bg-slate-50 disabled:text-slate-400 ${
+          invalid
+            ? "border-red-400"
+            : open
+              ? "border-primary"
+              : "border-slate-300 hover:border-slate-400"
         }`}
       >
-        <span className="truncate">{selected?.label ?? "Select"}</span>
+        <span
+          className={`truncate ${selected ? "" : "text-slate-400"}`}
+        >
+          {selected?.label ?? placeholder}
+        </span>
         <ChevronDownIcon
           className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
             open ? "rotate-180" : ""
@@ -72,7 +87,7 @@ export default function Select<T extends string>({
       {open && (
         <ul
           role="listbox"
-          className="absolute z-30 mt-1 w-full min-w-max overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute z-30 mt-1 max-h-60 w-full min-w-max overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
         >
           {options.map((option) => {
             const isSelected = option.value === value;

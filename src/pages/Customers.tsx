@@ -211,6 +211,7 @@ export default function Customers() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
               <tr>
+                <th className="w-16 px-4 py-3 font-medium">SL</th>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Phone</th>
                 <th className="px-4 py-3 font-medium">Email</th>
@@ -223,7 +224,7 @@ export default function Customers() {
             <tbody className="divide-y divide-slate-100">
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                     Loading…
                   </td>
                 </tr>
@@ -231,7 +232,7 @@ export default function Customers() {
 
               {!loading && !customers.length && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                     {search || status !== "all"
                       ? "No customers match these filters."
                       : "No customers yet. Add the first one."}
@@ -240,8 +241,11 @@ export default function Customers() {
               )}
 
               {!loading &&
-                customers.map((customer) => (
+                customers.map((customer, index) => (
                   <tr key={customer.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-slate-500">
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </td>
                     <td className="px-4 py-3 font-medium">{customer.name}</td>
                     <td className="px-4 py-3 text-slate-600">
                       {customer.phone}
