@@ -1,4 +1,5 @@
 // Barrel so callers can do: import { EyeIcon, UserIcon } from "../icons";
+export { default as AlertIcon } from "./AlertIcon";
 export { default as BoxIcon } from "./BoxIcon";
 export { default as CartIcon } from "./CartIcon";
 export { default as CategoryIcon } from "./CategoryIcon";
@@ -7,6 +8,7 @@ export { default as EyeIcon } from "./EyeIcon";
 export { default as EyeOffIcon } from "./EyeOffIcon";
 export { default as InvoiceIcon } from "./InvoiceIcon";
 export { default as LogoutIcon } from "./LogoutIcon";
+export { default as QuestionIcon } from "./QuestionIcon";
 export { default as StoreIcon } from "./StoreIcon";
 export { default as TagIcon } from "./TagIcon";
 export { default as UserIcon } from "./UserIcon";

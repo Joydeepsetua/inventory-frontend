@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
+import ConfirmDialog from "./ConfirmDialog";
 import {
   BoxIcon,
   CartIcon,
@@ -31,7 +33,10 @@ export default function Layout() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const [confirmLogout, setConfirmLogout] = useState(false);
+
   const handleLogout = () => {
+    setConfirmLogout(false);
     dispatch(logout());
     dispatch(resetCart());
     navigate("/login", { replace: true });
@@ -58,7 +63,7 @@ export default function Layout() {
 
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => setConfirmLogout(true)}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
           >
             <LogoutIcon className="h-4 w-4" />
@@ -111,6 +116,17 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title="Log out?"
+        message="You will need to sign in again to continue billing."
+        confirmLabel="Log out"
+        tone="danger"
+        icon={LogoutIcon}
+        onConfirm={handleLogout}
+        onCancel={() => setConfirmLogout(false)}
+      />
     </div>
   );
 }
