@@ -7,6 +7,7 @@ import Customers from "./pages/Customers";
 import Login from "./pages/Login";
 import Placeholder from "./pages/Placeholder";
 import Products from "./pages/Products";
+import Variants from "./pages/Variants";
 
 export default function App() {
   return (
@@ -25,7 +26,7 @@ export default function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="categories" element={<Categories />} />
           <Route path="products" element={<Products />} />
-          <Route path="variants" element={<Placeholder title="Variants" />} />
+          <Route path="variants" element={<Variants />} />
         </Route>
       </Route>
 
