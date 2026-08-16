@@ -11,6 +11,7 @@ export { default as DashboardIcon } from "./DashboardIcon";
 export { default as EditIcon } from "./EditIcon";
 export { default as EyeIcon } from "./EyeIcon";
 export { default as EyeOffIcon } from "./EyeOffIcon";
+export { default as HeartIcon } from "./HeartIcon";
 export { default as InvoiceIcon } from "./InvoiceIcon";
 export { default as LogoutIcon } from "./LogoutIcon";
 export { default as PlusIcon } from "./PlusIcon";

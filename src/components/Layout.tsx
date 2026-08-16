@@ -7,6 +7,7 @@ import {
   CartIcon,
   CategoryIcon,
   DashboardIcon,
+  HeartIcon,
   InvoiceIcon,
   LogoutIcon,
   StoreIcon,
@@ -72,7 +73,7 @@ export default function Layout() {
       </header>
 
       <div className="flex">
-        <aside className="sticky top-[61px] hidden h-[calc(100vh-61px)] w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-3 md:block">
+        <aside className="sticky top-[61px] hidden h-[calc(100vh-61px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white p-3 md:flex">
           <div className="mb-4 flex items-center gap-3 rounded-lg bg-primary p-3 text-white">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
               <UserIcon />
@@ -91,6 +92,17 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+
+          <div className="mt-auto border-t border-slate-200 pt-3">
+            <p className="flex items-center justify-center gap-1 text-[11px] text-slate-400">
+              Designed with
+              <HeartIcon className="h-3.5 w-3.5 text-red-500" />
+              by
+            </p>
+            <p className="mt-0.5 text-center text-xs font-medium text-slate-600">
+              Joydeep Setua
+            </p>
+          </div>
         </aside>
 
         <main className="min-w-0 flex-1 p-4 md:p-6">
