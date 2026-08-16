@@ -6,7 +6,6 @@ import type {
   SettablePaymentStatus,
 } from "../types/api";
 
-
 export interface CreateInvoiceInput {
   customer_id: string;
   discount_amount?: number;
@@ -39,10 +38,11 @@ export const updateInvoicePayment = (
   id: string,
   payment_status: SettablePaymentStatus,
   payment_method?: PaymentMethod | null
-) => api.patch<Invoice>(`/invoices/${id}/payment`, {
-  payment_status,
-  payment_method,
-});
+) =>
+  api.patch<Invoice>(`/invoices/${id}/payment`, {
+    payment_status,
+    payment_method,
+  });
 
 export const cancelInvoice = (id: string) =>
   api.patch<Invoice>(`/invoices/${id}/cancel`);

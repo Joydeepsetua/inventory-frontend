@@ -11,7 +11,6 @@ export const store = configureStore({
   },
 });
 
-
 setUnauthorizedHandler(() => {
   store.dispatch(logout());
 });

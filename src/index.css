@@ -1,17 +1,11 @@
 @import "tailwindcss";
 
-/* Brand palette. Defining these here makes them real Tailwind utilities —
-   bg-primary, text-primary, border-primary, ring-primary and so on — so no
-   component ever hardcodes the hex. */
 @theme {
   --color-primary: #008000;
   --color-primary-dark: #006400;
   --color-primary-tint: #e8f3e8;
 }
 
-/* Tailwind 4 ships buttons with `cursor: default`, unlike v3. Restoring the
-   pointer here means no component has to remember cursor-pointer, and
-   disabled buttons correctly keep the default arrow. */
 @layer base {
   button:not(:disabled),
   [role="button"]:not(:disabled),

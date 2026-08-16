@@ -52,7 +52,6 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // Also called by the client's 401 handler, not just the logout button.
     logout(state) {
       state.user = null;
       state.token = null;

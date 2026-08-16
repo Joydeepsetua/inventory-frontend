@@ -51,7 +51,6 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Sticky so the nav stays reachable on long invoice lists. */}
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Customers from "./pages/Customers";
 import Login from "./pages/Login";
 import Placeholder from "./pages/Placeholder";
 
@@ -19,7 +20,7 @@ export default function App() {
             path="invoices/:id"
             element={<Placeholder title="Invoice detail" />}
           />
-          <Route path="customers" element={<Placeholder title="Customers" />} />
+          <Route path="customers" element={<Customers />} />
           <Route
             path="categories"
             element={<Placeholder title="Categories" />}

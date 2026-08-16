@@ -112,7 +112,6 @@ export interface Cart {
 export type PaymentStatus = "PENDING" | "PAID" | "PARTIAL" | "CANCELLED";
 export type PaymentMethod = "CASH" | "CARD" | "UPI";
 
-// PATCH /invoices/:id/cancel is the only way to reach CANCELLED.
 export type SettablePaymentStatus = Exclude<PaymentStatus, "CANCELLED">;
 
 export interface Invoice {
