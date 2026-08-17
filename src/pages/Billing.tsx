@@ -20,16 +20,19 @@ import {
   updateItem,
 } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import type { Category, Variant } from "../types/api";
+import type { CartItem, Category, Variant } from "../types/api";
 import { formatMoney } from "../utils/format";
 
 const VARIANT_LIMIT = 100;
 
 export default function Billing() {
   const dispatch = useAppDispatch();
-  const { cart, loading: cartLoading, error: cartError } = useAppSelector(
-    (state) => state.cart
-  );
+  const {
+    cart,
+    loading: cartLoading,
+    pending,
+    error: cartError,
+  } = useAppSelector((state) => state.cart);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState("");
@@ -132,10 +135,12 @@ export default function Billing() {
   }, [variants]);
 
   const inCart = useMemo(() => {
-    const map = new Map<string, number>();
-    cart.items.forEach((item) => map.set(item.variant_id, item.quantity));
+    const map = new Map<string, CartItem>();
+    cart.items.forEach((item) => map.set(item.variant_id, item));
     return map;
   }, [cart.items]);
+
+  const isBusy = (key: string) => pending[key] === true;
 
   const tabClass = (active: boolean) =>
     `shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition ${
@@ -237,7 +242,13 @@ export default function Billing() {
                   <div className="grid gap-3 p-3 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                     {group.items.map((variant) => {
                       const outOfStock = variant.stock_quantity === 0;
-                      const added = inCart.get(variant.id) ?? 0;
+                      const cartRow = inCart.get(variant.id);
+                      const added = cartRow?.quantity ?? 0;
+                      const atStockLimit =
+                        !outOfStock && added >= variant.stock_quantity;
+                      const cardBusy =
+                        isBusy(variant.id) ||
+                        (cartRow ? isBusy(cartRow.id) : false);
 
                       return (
                         <div
@@ -294,14 +305,30 @@ export default function Billing() {
 
                               <button
                                 type="button"
-                                disabled={outOfStock || cartLoading}
+                                disabled={
+                                  outOfStock ||
+                                  atStockLimit ||
+                                  cardBusy ||
+                                  cartLoading
+                                }
+                                title={
+                                  atStockLimit
+                                    ? "Cart already has all available stock"
+                                    : undefined
+                                }
                                 onClick={() =>
                                   dispatch(addItem({ variantId: variant.id }))
                                 }
                                 className="flex shrink-0 items-center gap-1 rounded-lg border border-primary px-2.5 py-1 text-xs font-medium text-primary-dark transition hover:bg-primary hover:text-white disabled:border-slate-300 disabled:text-slate-400 disabled:hover:bg-transparent"
                               >
-                                <PlusIcon className="h-3.5 w-3.5" />
-                                Add
+                                {atStockLimit ? (
+                                  "Max"
+                                ) : (
+                                  <>
+                                    <PlusIcon className="h-3.5 w-3.5" />
+                                    Add
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
@@ -352,72 +379,87 @@ export default function Billing() {
               </div>
             ) : (
               <ul className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto max-md:max-h-[50vh]">
-                {cart.items.map((item) => (
-                  <li key={item.id} className="px-4 py-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {item.product_name}
-                        </p>
-                        <p className="font-mono text-[11px] text-slate-400">
-                          {item.sku}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => dispatch(removeItem(item.id))}
-                        aria-label={`Remove ${item.sku}`}
-                        className="rounded p-1 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </div>
+                {cart.items.map((item) => {
+                  const rowBusy = isBusy(item.id) || isBusy(item.variant_id);
+                  const rowStock = item.variant?.stock_quantity;
+                  const atStockLimit =
+                    rowStock !== undefined && item.quantity >= rowStock;
 
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <div className="flex items-center rounded-lg border border-slate-300">
+                  return (
+                    <li key={item.id} className="px-4 py-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {item.product_name}
+                          </p>
+                          <p className="font-mono text-[11px] text-slate-400">
+                            {item.sku}
+                          </p>
+                        </div>
                         <button
                           type="button"
-                          disabled={item.quantity <= 1 || cartLoading}
-                          onClick={() =>
-                            dispatch(
-                              updateItem({
-                                itemId: item.id,
-                                quantity: item.quantity - 1,
-                              })
-                            )
-                          }
-                          aria-label="Decrease quantity"
-                          className="px-2 py-1 text-slate-500 transition hover:text-primary-dark disabled:opacity-30"
+                          disabled={rowBusy || cartLoading}
+                          onClick={() => dispatch(removeItem(item.id))}
+                          aria-label={`Remove ${item.sku}`}
+                          className="rounded p-1 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
                         >
-                          <MinusIcon className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </button>
-                        <span className="min-w-8 text-center text-sm tabular-nums">
-                          {item.quantity}
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <div className="flex items-center rounded-lg border border-slate-300">
+                          <button
+                            type="button"
+                            disabled={
+                              item.quantity <= 1 || rowBusy || cartLoading
+                            }
+                            onClick={() =>
+                              dispatch(
+                                updateItem({
+                                  itemId: item.id,
+                                  quantity: item.quantity - 1,
+                                })
+                              )
+                            }
+                            aria-label="Decrease quantity"
+                            className="px-2 py-1 text-slate-500 transition hover:text-primary-dark disabled:opacity-30"
+                          >
+                            <MinusIcon className="h-4 w-4" />
+                          </button>
+                          <span className="min-w-8 text-center text-sm tabular-nums">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={atStockLimit || rowBusy || cartLoading}
+                            title={
+                              atStockLimit
+                                ? `Only ${rowStock} in stock`
+                                : undefined
+                            }
+                            onClick={() =>
+                              dispatch(
+                                updateItem({
+                                  itemId: item.id,
+                                  quantity: item.quantity + 1,
+                                })
+                              )
+                            }
+                            aria-label="Increase quantity"
+                            className="px-2 py-1 text-slate-500 transition hover:text-primary-dark disabled:opacity-30"
+                          >
+                            <PlusIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <span className="text-sm font-medium tabular-nums">
+                          {formatMoney(item.line_total)}
                         </span>
-                        <button
-                          type="button"
-                          disabled={cartLoading}
-                          onClick={() =>
-                            dispatch(
-                              updateItem({
-                                itemId: item.id,
-                                quantity: item.quantity + 1,
-                              })
-                            )
-                          }
-                          aria-label="Increase quantity"
-                          className="px-2 py-1 text-slate-500 transition hover:text-primary-dark disabled:opacity-30"
-                        >
-                          <PlusIcon className="h-4 w-4" />
-                        </button>
                       </div>
-
-                      <span className="text-sm font-medium tabular-nums">
-                        {formatMoney(item.line_total)}
-                      </span>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             )}
 
