@@ -33,6 +33,12 @@ export interface ApiResult<T> {
 
 type Query = Record<string, string | number | boolean | undefined | null>;
 
+interface RequestOptions {
+  body?: unknown;
+  query?: Query;
+  skipUnauthorizedHandler?: boolean;
+}
+
 const buildUrl = (path: string, query?: Query) => {
   const url = new URL(BASE_URL + path, window.location.origin);
 
@@ -49,7 +55,7 @@ const buildUrl = (path: string, query?: Query) => {
 const request = async <T>(
   method: string,
   path: string,
-  options: { body?: unknown; query?: Query } = {}
+  options: RequestOptions = {}
 ): Promise<ApiResult<T>> => {
   const token = getToken();
 
@@ -73,7 +79,7 @@ const request = async <T>(
     );
   }
 
-  if (response.status === 401) {
+  if (response.status === 401 && !options.skipUnauthorizedHandler) {
     clearToken();
     onUnauthorized?.();
     throw new ApiError("Session expired. Please log in again.", 401);
@@ -106,7 +112,11 @@ const request = async <T>(
 
 export const api = {
   get: <T>(path: string, query?: Query) => request<T>("GET", path, { query }),
-  post: <T>(path: string, body?: unknown) => request<T>("POST", path, { body }),
+  post: <T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "body" | "query">
+  ) => request<T>("POST", path, { ...options, body }),
   put: <T>(path: string, body?: unknown) => request<T>("PUT", path, { body }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>("PATCH", path, { body }),
