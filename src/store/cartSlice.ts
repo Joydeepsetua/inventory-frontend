@@ -17,17 +17,34 @@ const emptyCart: Cart = {
 interface CartState {
   cart: Cart;
   loading: boolean;
+  pending: Record<string, boolean>;
   error: string | null;
 }
 
 const initialState: CartState = {
   cart: emptyCart,
   loading: false,
+  pending: {},
   error: null,
 };
 
 const message = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
+
+const busyKey = (arg: unknown): string | null => {
+  if (typeof arg === "string") return arg;
+
+  if (arg && typeof arg === "object") {
+    const { variantId, itemId } = arg as {
+      variantId?: string;
+      itemId?: string;
+    };
+
+    return variantId ?? itemId ?? null;
+  }
+
+  return null;
+};
 
 export const fetchCart = createAsyncThunk<Cart, void, { rejectValue: string }>(
   "cart/fetch",
@@ -99,6 +116,8 @@ const cartSlice = createSlice({
   reducers: {
     resetCart(state) {
       state.cart = emptyCart;
+      state.pending = {};
+      state.loading = false;
       state.error = null;
     },
   },
@@ -113,16 +132,28 @@ const cartSlice = createSlice({
     ] as const;
 
     builder
-      .addMatcher(isPending(...thunks), (state) => {
-        state.loading = true;
+      .addMatcher(isPending(...thunks), (state, action) => {
+        const key = busyKey(action.meta.arg);
+
+        if (key) state.pending[key] = true;
+        else state.loading = true;
+
         state.error = null;
       })
       .addMatcher(isFulfilled(...thunks), (state, action) => {
-        state.loading = false;
+        const key = busyKey(action.meta.arg);
+
+        if (key) delete state.pending[key];
+        else state.loading = false;
+
         state.cart = action.payload;
       })
       .addMatcher(isRejected(...thunks), (state, action) => {
-        state.loading = false;
+        const key = busyKey(action.meta.arg);
+
+        if (key) delete state.pending[key];
+        else state.loading = false;
+
         state.error = action.payload ?? "Cart request failed";
       });
   },
