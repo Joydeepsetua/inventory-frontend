@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export interface BarPoint {
+  id: string;
   label: string;
   caption: string;
   value: number;
@@ -15,6 +16,15 @@ interface BarChartProps {
 
 const HEIGHT = 180;
 const BAR_WIDTH = 34;
+const BAR_SCALE = 0.78;
+
+const gapFor = (count: number) => (count > 15 ? 2 : count > 7 ? 4 : 8);
+
+const alignFor = (index: number, count: number) => {
+  if (index === 0) return "left-0";
+  if (index === count - 1) return "right-0";
+  return "left-1/2 -translate-x-1/2";
+};
 
 export default function BarChart({
   data,
@@ -24,6 +34,7 @@ export default function BarChart({
 }: BarChartProps) {
   const [hovered, setHovered] = useState<number | null>(null);
 
+  const gap = gapFor(data.length);
   const max = Math.max(...data.map((point) => point.value), 0);
   const peakIndex = data.findIndex((point) => point.value === max && max > 0);
 
@@ -44,26 +55,33 @@ export default function BarChart({
           ))}
         </div>
 
-        <div className="relative flex h-full items-end gap-2">
+        <div className="relative flex h-full items-end" style={{ gap }}>
           {data.map((point, index) => {
-            const heightPercent = max ? (point.value / max) * 100 : 0;
+            const heightPercent = max
+              ? (point.value / max) * 100 * BAR_SCALE
+              : 0;
             const isHovered = hovered === index;
 
             return (
               <div
-                key={point.label}
+                key={point.id}
                 onMouseEnter={() => setHovered(index)}
                 onMouseLeave={() => setHovered(null)}
                 className="group relative flex h-full flex-1 cursor-default flex-col justify-end"
               >
                 {(isHovered || index === peakIndex) && point.value > 0 && (
                   <span
-                    className="absolute inset-x-0 -top-1 text-center text-[11px] font-medium tabular-nums text-slate-600"
-                    style={{
-                      bottom: `calc(${heightPercent}% + 6px)`,
-                      top: "auto",
-                    }}
+                    className={`pointer-events-none absolute z-10 whitespace-nowrap text-center text-[11px] font-medium tabular-nums text-slate-600 ${alignFor(
+                      index,
+                      data.length,
+                    )}`}
+                    style={{ bottom: `calc(${heightPercent}% + 6px)` }}
                   >
+                    {isHovered && (
+                      <span className="block font-normal text-slate-400">
+                        {point.caption}
+                      </span>
+                    )}
                     {formatValue(point.value)}
                   </span>
                 )}
@@ -83,10 +101,10 @@ export default function BarChart({
         </div>
       </div>
 
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex" style={{ gap }}>
         {data.map((point, index) => (
           <div
-            key={point.label}
+            key={point.id}
             className={`flex-1 text-center text-[11px] transition ${
               hovered === index
                 ? "font-medium text-slate-700"
@@ -102,7 +120,7 @@ export default function BarChart({
         <caption>Sales by day</caption>
         <tbody>
           {data.map((point) => (
-            <tr key={point.label}>
+            <tr key={point.id}>
               <th scope="row">{point.caption}</th>
               <td>{formatValue(point.value)}</td>
             </tr>

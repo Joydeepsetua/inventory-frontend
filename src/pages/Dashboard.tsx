@@ -1,20 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { listCustomers } from "../api/customers";
+import { getDashboardSummary } from "../api/dashboard";
 import { listInvoices } from "../api/invoices";
 import { listVariants } from "../api/variants";
 import BarChart from "../components/charts/BarChart";
 import type { BarPoint } from "../components/charts/BarChart";
 import DonutChart from "../components/charts/DonutChart";
 import type { DonutSlice } from "../components/charts/DonutChart";
+import Select from "../components/Select";
 import StatCard from "../components/StatCard";
 import {
   CHART_PRIMARY,
+  DEFAULT_TREND_RANGE,
   PAYMENT_STATUS_CHART_COLORS,
-  PAYMENT_STATUS_OPTIONS,
+  PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_STYLES,
+  TREND_RANGE_OPTIONS,
 } from "../constants/options";
+import type { TrendRange } from "../constants/options";
 import {
   AlertIcon,
   CartIcon,
@@ -23,138 +27,71 @@ import {
   UsersIcon,
 } from "../icons";
 import { useAppSelector } from "../store/hooks";
-import type { Invoice, Variant } from "../types/api";
+import type { DashboardSummary, Invoice, Variant } from "../types/api";
 import { errorMessage } from "../utils/error";
 import { formatDate, formatMoney } from "../utils/format";
-
-const TODAY_LIMIT = 100;
-
-interface Stats {
-  todaySales: number;
-  todayCount: number;
-  pendingCount: number;
-  lowStockCount: number;
-  customerCount: number;
-  todayTruncated: boolean;
-}
 
 export default function Dashboard() {
   const user = useAppSelector((state) => state.auth.user);
 
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [range, setRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [recent, setRecent] = useState<Invoice[]>([]);
   const [lowStock, setLowStock] = useState<Variant[]>([]);
-  const [statusSlices, setStatusSlices] = useState<DonutSlice[]>([]);
-  const [weekSales, setWeekSales] = useState<BarPoint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [listsLoading, setListsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let ignore = false;
 
     const run = async () => {
-      setLoading(true);
-      setError(null);
-
-      const asDay = (date: Date) => date.toLocaleDateString("en-CA");
-
-      const dayStart = (date: Date) => {
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-        return start.toISOString();
-      };
-
-      const dayEnd = (date: Date) => {
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
-        return end.toISOString();
-      };
-
-      const now = new Date();
-
-      const days = Array.from({ length: 7 }, (_, index) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - index));
-        return date;
-      });
+      setSummaryLoading(true);
 
       try {
-        const [todayInv, pending, low, customers, recentInv, week, ...counts] =
-          await Promise.all([
-            listInvoices({
-              date_from: dayStart(now),
-              date_to: dayEnd(now),
-              limit: TODAY_LIMIT,
-            }),
-            listInvoices({ payment_status: "PENDING", limit: 1 }),
-            listVariants({ low_stock: true, status: "active", limit: 5 }),
-            listCustomers({ status: "active", limit: 1 }),
-            listInvoices({ limit: 5 }),
-            listInvoices({
-              date_from: dayStart(days[0]),
-              date_to: dayEnd(now),
-              limit: 100,
-            }),
-            ...PAYMENT_STATUS_OPTIONS.map((option) =>
-              listInvoices({ payment_status: option.value, limit: 1 }),
-            ),
-          ]);
+        const result = await getDashboardSummary({ days: Number(range) });
 
         if (ignore) return;
 
-        setStatusSlices(
-          PAYMENT_STATUS_OPTIONS.map((option, index) => ({
-            label: option.label,
-            value: counts[index].pagination?.total ?? 0,
-            color: PAYMENT_STATUS_CHART_COLORS[option.value],
-          })),
-        );
+        setSummary(result.data);
+      } catch (caught) {
+        if (ignore) return;
+        setError(errorMessage(caught, "Unable to load dashboard"));
+      } finally {
+        if (!ignore) setSummaryLoading(false);
+      }
+    };
 
-        const byDay = new Map<string, number>();
+    run();
 
-        week.data
-          .filter((invoice) => invoice.payment_status !== "CANCELLED")
-          .forEach((invoice) => {
-            const key = asDay(new Date(invoice.invoice_date));
-            byDay.set(
-              key,
-              (byDay.get(key) ?? 0) + Number(invoice.total_amount),
-            );
-          });
+    return () => {
+      ignore = true;
+    };
+  }, [range]);
 
-        setWeekSales(
-          days.map((date) => ({
-            label: date.toLocaleDateString("en-IN", { weekday: "short" }),
-            caption: date.toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-            }),
-            value: byDay.get(asDay(date)) ?? 0,
-          })),
-        );
+  useEffect(() => {
+    let ignore = false;
 
-        const billed = todayInv.data.filter(
-          (invoice) => invoice.payment_status !== "CANCELLED",
-        );
+    const run = async () => {
+      setListsLoading(true);
 
-        setStats({
-          todaySales: billed.reduce(
-            (sum, invoice) => sum + Number(invoice.total_amount),
-            0,
-          ),
-          todayCount: billed.length,
-          pendingCount: pending.pagination?.total ?? 0,
-          lowStockCount: low.pagination?.total ?? 0,
-          customerCount: customers.pagination?.total ?? 0,
-          todayTruncated: (todayInv.pagination?.total ?? 0) > TODAY_LIMIT,
-        });
+      try {
+        const [low, recentInv] = await Promise.all([
+          listVariants({ low_stock: true, status: "active", limit: 5 }),
+          listInvoices({ limit: 5 }),
+        ]);
+
+        if (ignore) return;
+
         setLowStock(low.data);
+        setLowStockCount(low.pagination?.total ?? 0);
         setRecent(recentInv.data);
       } catch (caught) {
         if (ignore) return;
         setError(errorMessage(caught, "Unable to load dashboard"));
       } finally {
-        if (!ignore) setLoading(false);
+        if (!ignore) setListsLoading(false);
       }
     };
 
@@ -164,6 +101,46 @@ export default function Dashboard() {
       ignore = true;
     };
   }, []);
+
+  const stats = summary?.stats;
+
+  const statusSlices = useMemo<DonutSlice[]>(
+    () =>
+      (summary?.payment_status ?? []).map((entry) => ({
+        label: PAYMENT_STATUS_LABELS[entry.status],
+        value: entry.count,
+        color: PAYMENT_STATUS_CHART_COLORS[entry.status],
+      })),
+    [summary],
+  );
+
+  const trend = useMemo<BarPoint[]>(() => {
+    const points = summary?.sales_trend ?? [];
+
+    const labelEvery = Math.ceil(points.length / 7);
+
+    return points.map((point, index) => {
+      const date = new Date(`${point.date}T00:00:00`);
+
+      const caption = date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+      });
+
+      const labelled = (points.length - 1 - index) % labelEvery === 0;
+
+      return {
+        id: point.date,
+        label: labelled
+          ? points.length > 7
+            ? caption
+            : date.toLocaleDateString("en-IN", { weekday: "short" })
+          : "",
+        caption,
+        value: Number(point.total),
+      };
+    });
+  }, [summary]);
 
   const cardLink = (to: string, label: string) => (
     <Link
@@ -195,62 +172,71 @@ export default function Dashboard() {
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Today's sales"
-          value={formatMoney(stats?.todaySales ?? 0)}
-          hint={
-            stats?.todayTruncated
-              ? `First ${TODAY_LIMIT} bills only`
-              : "Cancelled bills excluded"
-          }
+          value={formatMoney(stats?.today_sales ?? 0)}
+          hint="Cancelled bills excluded"
           icon={CartIcon}
           tone="primary"
-          loading={loading}
+          loading={summaryLoading && !summary}
         />
         <StatCard
           label="Bills today"
-          value={String(stats?.todayCount ?? 0)}
+          value={String(stats?.today_count ?? 0)}
           icon={InvoiceIcon}
           tone="blue"
-          loading={loading}
+          loading={summaryLoading && !summary}
         />
         <StatCard
           label="Payment pending"
-          value={String(stats?.pendingCount ?? 0)}
+          value={String(stats?.pending_invoice_count ?? 0)}
           hint="Across all dates"
           icon={AlertIcon}
           tone="amber"
-          loading={loading}
+          loading={summaryLoading && !summary}
         />
         <StatCard
           label="Customers"
-          value={String(stats?.customerCount ?? 0)}
+          value={String(stats?.customer_count ?? 0)}
           hint="Active"
           icon={UsersIcon}
           tone="slate"
-          loading={loading}
+          loading={summaryLoading && !summary}
         />
       </div>
 
       <div className="mb-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <section className="rounded-xl border border-slate-200 bg-white">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-            <div>
-              <h2 className="font-semibold">Sales this week</h2>
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+            <div className="min-w-0">
+              <h2 className="font-semibold">Sales</h2>
               <p className="text-xs text-slate-400">
-                Last 7 days · cancelled bills excluded
+                Cancelled bills excluded
               </p>
             </div>
+
+            <Select
+              value={range}
+              options={TREND_RANGE_OPTIONS}
+              onChange={setRange}
+              label="Sales date range"
+              className="w-36 shrink-0"
+            />
           </div>
 
-          {loading ? (
+          {!summary ? (
             <p className="px-4 py-14 text-center text-sm text-slate-500">
               Loading…
             </p>
           ) : (
-            <BarChart
-              data={weekSales}
-              color={CHART_PRIMARY}
-              formatValue={formatMoney}
-            />
+            <div
+              aria-busy={summaryLoading}
+              className={`transition-opacity ${summaryLoading ? "opacity-50" : ""}`}
+            >
+              <BarChart
+                data={trend}
+                color={CHART_PRIMARY}
+                formatValue={formatMoney}
+              />
+            </div>
           )}
         </section>
 
@@ -262,7 +248,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {loading ? (
+          {!summary ? (
             <p className="px-4 py-14 text-center text-sm text-slate-500">
               Loading…
             </p>
@@ -281,16 +267,16 @@ export default function Dashboard() {
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
             <h2 className="flex items-center gap-2 font-semibold">
               Low stock
-              {!loading && !!stats?.lowStockCount && (
+              {!listsLoading && !!lowStockCount && (
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-                  {stats.lowStockCount}
+                  {lowStockCount}
                 </span>
               )}
             </h2>
             {cardLink("/variants", "Manage")}
           </div>
 
-          {loading ? (
+          {listsLoading ? (
             <p className="px-4 py-10 text-center text-sm text-slate-500">
               Loading…
             </p>
@@ -339,7 +325,7 @@ export default function Dashboard() {
             {cardLink("/invoices", "View all")}
           </div>
 
-          {loading ? (
+          {listsLoading ? (
             <p className="px-4 py-10 text-center text-sm text-slate-500">
               Loading…
             </p>
