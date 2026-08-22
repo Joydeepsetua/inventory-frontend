@@ -28,6 +28,10 @@ export const PAYMENT_STATUS_OPTIONS: SelectOption<PaymentStatus>[] = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
+export const PAYMENT_STATUS_LABELS = Object.fromEntries(
+  PAYMENT_STATUS_OPTIONS.map((option) => [option.value, option.label])
+) as Record<PaymentStatus, string>;
+
 export const SETTABLE_PAYMENT_STATUS_OPTIONS = PAYMENT_STATUS_OPTIONS.filter(
   (option) => option.value !== "CANCELLED"
 ) as SelectOption<SettablePaymentStatus>[];
@@ -55,6 +59,16 @@ export const STOCK_OPTIONS: SelectOption<StockFilter>[] = [
   { value: "low", label: "Low stock" },
   { value: "healthy", label: "In stock" },
 ];
+
+export type TrendRange = "7" | "15" | "30";
+
+export const TREND_RANGE_OPTIONS: SelectOption<TrendRange>[] = [
+  { value: "7", label: "Last 7 days" },
+  { value: "15", label: "Last 15 days" },
+  { value: "30", label: "Last 30 days" },
+];
+
+export const DEFAULT_TREND_RANGE: TrendRange = "7";
 
 export const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
   PENDING: "bg-orange-100 text-orange-800",
